@@ -6,6 +6,6 @@
 
 [Preprint link](https://www.preprints.org/manuscript/202207.0347/v1)
 
-[DOI](https://doi.org/10.3390/rs1010000)
+[DOI](https://doi.org/10.3390/rs14184458)
 
 **Codes will be added soon**
