@@ -1,0 +1,19 @@
+
+cir_itrs:100
+Overall Acc: 0.340635
+UA: 0.214682
+PA: 0.640682
+FreqW Acc: 0.157433
+Mean IoU: 0.111361
+f1: 0.321601
+Class IoU:
+	class 0: 0.279800
+	class 1: 0.090083
+	class 2: 0.000000
+	class 3: 0.000000
+	class 4: 0.286631
+	class 5: 0.002113
+	class 6: 0.120902
+
+train_loss:1.090905683040619
+val_loss:1.3468077
