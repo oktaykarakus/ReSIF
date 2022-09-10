@@ -12,9 +12,25 @@ This is the official code repository for
 [DOI](https://doi.org/10.3390/rs14184458)
 
 # Framework
-
+coming soon
 # Requirements
-
+coming soon
 # Quite Starts
-
+coming soon
 # Citation
+
+’‘’
+@Article{rs14184458,
+AUTHOR = {Ma, Wanli and Karakuş, Oktay and Rosin, Paul L.},
+TITLE = {AMM-FuseNet: Attention-Based Multi-Modal Image Fusion Network for Land Cover Mapping},
+JOURNAL = {Remote Sensing},
+VOLUME = {14},
+YEAR = {2022},
+NUMBER = {18},
+ARTICLE-NUMBER = {4458},
+URL = {https://www.mdpi.com/2072-4292/14/18/4458},
+ISSN = {2072-4292},
+DOI = {10.3390/rs14184458}
+}
+
+‘’‘
