@@ -1,3 +1,5 @@
+This is the official code repository for 
+
 # AMM-FuseNet: Attention-Based Multi-Modal Image Fusion Network for Land Cover Mapping
 
 **Wanli Ma, Oktay Karakus, Paul L. Rosin**
