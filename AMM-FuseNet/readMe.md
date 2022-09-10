@@ -20,7 +20,7 @@ coming soon
 # Citation
 
 ```
-@Article{rs14184458,
+@Article{AMM_FuseNet,
 AUTHOR = {Ma, Wanli and Karakuş, Oktay and Rosin, Paul L.},
 TITLE = {AMM-FuseNet: Attention-Based Multi-Modal Image Fusion Network for Land Cover Mapping},
 JOURNAL = {Remote Sensing},
