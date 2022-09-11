@@ -52,6 +52,17 @@ coming soon
   │   │   │   ├── ......
 
   ```
+  
+  To retrain the model:
+  ```
+  python train.py
+  ```
+  
+  To test the model:
+  ```
+  python test.py
+  ```
+  
 # Citation
 
 ```
