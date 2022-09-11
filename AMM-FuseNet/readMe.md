@@ -13,6 +13,10 @@ This is the official code repository for
 
 # Framework
 ![arch](https://github.com/oktaykarakus/ReSIF/blob/main/AMM-FuseNet/figures/AMM-FuseNet.png?raw=true)
+
+![arch](https://github.com/oktaykarakus/ReSIF/blob/main/AMM-FuseNet/figures/CA-Module.png?raw=true)
+
+![arch](https://github.com/oktaykarakus/ReSIF/blob/main/AMM-FuseNet/figures/CADenseASPP2.png?raw=true)
 # Requirements
 coming soon
 # Installation
