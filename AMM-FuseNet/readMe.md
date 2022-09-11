@@ -16,7 +16,40 @@ coming soon
 # Requirements
 coming soon
 # Quite Starts
-coming soon
+ Data structure for train, test and validation:
+ ```
+  │ data/
+  ├── myhunan/
+  │   ├── ann_dir/
+  │   │   ├── test
+  │   │   │   ├── ......
+  │   │   ├── train
+  │   │   │   ├── ......
+  │   │   ├── val
+  │   │   │   ├── ......
+  │   ├── dem_dir/
+  │   │   ├── test
+  │   │   │   ├── ......
+  │   │   ├── train
+  │   │   │   ├── ......
+  │   │   ├── val
+  │   │   │   ├── ......
+  │   ├── s1_dir/
+  │   │   ├── test
+  │   │   │   ├── ......
+  │   │   ├── train
+  │   │   │   ├── ......
+  │   │   ├── val
+  │   │   │   ├── ......
+  │   ├── s2_dir/
+  │   │   ├── test
+  │   │   │   ├── ......
+  │   │   ├── train
+  │   │   │   ├── ......
+  │   │   ├── val
+  │   │   │   ├── ......
+
+  ```
 # Citation
 
 ```
