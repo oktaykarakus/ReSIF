@@ -12,7 +12,7 @@ This is the official code repository for
 [DOI](https://doi.org/10.3390/rs14184458)
 
 # Framework
-![arch](https://github.com/oktaykarakus/ReSIF/blob/main/AMM-FuseNet/figures/AMM-FuseNet.png)
+![arch](https://github.com/oktaykarakus/ReSIF/blob/main/AMM-FuseNet/figures/AMM-FuseNet.png?raw=true)
 # Requirements
 coming soon
 # Installation
