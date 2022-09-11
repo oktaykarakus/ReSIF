@@ -13,10 +13,14 @@ This is the official code repository for
 
 # Framework
 ![arch](https://github.com/oktaykarakus/ReSIF/blob/main/AMM-FuseNet/figures/AMM-FuseNet.png?raw=true)
+Attention-based multi-modal image fusion network (AMM-FuseNet). Two encoders are applied for two modalities, respectively. For each modality, there are two extractors used also in parallel.
 
 ![arch](https://github.com/oktaykarakus/ReSIF/blob/main/AMM-FuseNet/figures/CA-Module.png?raw=true)
+Visual representation of the channel attention module (CA-Module). Aggregated features are processed by average pooling to acquire the element for each channel. Channel weights are obtained after 1-D convolution and applying the sigmoid function. Corresponding channel weights and feature channels are shown in the figure by matching colors.
 
 ![arch](https://github.com/oktaykarakus/ReSIF/blob/main/AMM-FuseNet/figures/CADenseASPP2.png?raw=true)
+Channel-attention-based densely connected atrous spatial pyramid pooling (CADenseA-SPP). The atrous convolution layers and an average pooling layer are densely connected, and a channel attention module is added just after each atrous convolution layer.
+
 # Requirements
 coming soon
 # Installation
