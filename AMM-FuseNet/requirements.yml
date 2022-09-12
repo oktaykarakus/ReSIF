@@ -1,4 +1,4 @@
-name: github
+name: resiflab
 channels:
   - pytorch
   - conda-forge
