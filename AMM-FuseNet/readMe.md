@@ -9,8 +9,6 @@ This is the official code repository for
 
 # [Paper link](https://www.mdpi.com/2072-4292/14/18/4458)
 
-# [DOI: https://doi.org/10.3390/rs14184458](https://doi.org/10.3390/rs14184458)
-
 # Framework
 ![arch](https://github.com/oktaykarakus/ReSIF/blob/main/AMM-FuseNet/figures/AMM-FuseNet.png?raw=true)
 Attention-based multi-modal image fusion network (AMM-FuseNet). Two encoders are applied for two modalities, respectively. For each modality, there are two extractors used also in parallel.
