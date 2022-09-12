@@ -22,7 +22,10 @@ Channel-attention-based densely connected atrous spatial pyramid pooling (CADens
 # Requirements
 coming soon
 # Installation
-coming soon
+The code has been test under python 3.7. To install the environment 
+```
+pip install -r requirements.txt
+```
 # Quite Starts
  we show an example for one dataset, Hunan. other datasets' preparation has the same structure with Hunan. Hunan dataset can be download from the [link](https://github.com/LauraChow/HunanMultimodalDataset)
  
