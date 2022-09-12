@@ -19,8 +19,6 @@ Visual representation of the channel attention module (CA-Module). Aggregated fe
 ![arch](https://github.com/oktaykarakus/ReSIF/blob/main/AMM-FuseNet/figures/CADenseASPP2.png?raw=true)
 Channel-attention-based densely connected atrous spatial pyramid pooling (CADenseA-SPP). The atrous convolution layers and an average pooling layer are densely connected, and a channel attention module is added just after each atrous convolution layer.
 
-# Requirements
-coming soon
 # Installation
 The code has been test under python 3.7. To install the environment 
 ```
