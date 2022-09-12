@@ -20,12 +20,12 @@ Visual representation of the channel attention module (CA-Module). Aggregated fe
 Channel-attention-based densely connected atrous spatial pyramid pooling (CADenseA-SPP). The atrous convolution layers and an average pooling layer are densely connected, and a channel attention module is added just after each atrous convolution layer.
 
 # Installation
-The code has been test under python 3.7. To install the environment 
+The code has been test under python 3.7.11. To install the environment from Anaconda:
 ```
 conda env create -r requirements.yml
 ```
 # Quite Starts
- we show an example for one dataset, Hunan. other datasets' preparation has the same structure with Hunan. Hunan dataset can be download from the [link](https://github.com/LauraChow/HunanMultimodalDataset)
+We show an example for one dataset, Hunan. other datasets' preparation has the same structure with Hunan. Hunan dataset can be download from the [link](https://github.com/LauraChow/HunanMultimodalDataset)
  
  Data structure for train, test and validation:
  ```
