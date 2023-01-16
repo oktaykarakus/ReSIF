@@ -253,7 +253,7 @@ dependencies:
     - medpy==0.4.0
     - ml-collections==0.1.1
     - mlflow==1.26.1
-    - mmcv-full==1.4.6
+    - mmcv==1.4.6
     - msgpack==1.0.4
     - multidict==6.0.2
     - munch==2.5.0
