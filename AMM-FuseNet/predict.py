@@ -12,7 +12,7 @@ from datasets import Hunan_dual_2D
 from datasets import Hunan2_dual_2D
 
 from datasets import potsdam_dual_2D
-from datasets import vaihingen_dual_2D
+# from datasets import vaihingen_dual_2D
 
 from datasets import DFC20_dual_2D
 from utils import ext_transforms as et
