@@ -242,7 +242,7 @@ dependencies:
     - keras==2.8.0
     - keras-applications==1.0.8
     - kiwisolver==1.4.4
-    - kornia==0.6.2
+    - kornia      # ==0.6.2
     - mako==1.2.0
     - mapbox==0.18.0
     - markdown==3.3.6
