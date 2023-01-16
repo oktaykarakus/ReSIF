@@ -1,4 +1,4 @@
-name: resiflab
+# name: resiflab
 channels:
   - pytorch
   - conda-forge
