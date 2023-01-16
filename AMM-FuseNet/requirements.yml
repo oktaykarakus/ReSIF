@@ -340,7 +340,7 @@ dependencies:
     - tifffile==2021.11.2
     - timm==0.4.12
     - toml==0.10.2
-    - torch-encoding==1.2.2b20220421
+    - torch-encoding
     - torch-summary==1.4.5
     - torchcam==0.2.0
     - torchfile==0.1.0
