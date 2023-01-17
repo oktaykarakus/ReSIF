@@ -231,7 +231,8 @@ def main():
     # Set up metrics
     metrics = StreamSegMetrics(opts.num_classes)
 
-    opts.ckpt = "checkpoints/latest_"+opts.model+"_"+opts.dataset+"_os"+str(opts.output_stride)+".pth"
+    if opts.ckpt is None:
+        opts.ckpt = "checkpoints/latest_"+opts.model+"_"+opts.dataset+"_os"+str(opts.output_stride)+".pth"
     
     print(opts)
     
