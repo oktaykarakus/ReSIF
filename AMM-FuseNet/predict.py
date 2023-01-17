@@ -189,6 +189,8 @@ def validate(opts, model, loader, device, metrics, ret_samples_ids=None):
 
 
 def main():
+    print("Running main")
+    
     opts = get_argparser().parse_args()
     if opts.dataset.lower() == 'hunan' or opts.dataset.lower() == 'hunan2' :
         opts.num_classes = 7
@@ -220,6 +222,7 @@ def main():
     test_dataset = get_dataset(opts)
     val_loader = data.DataLoader(
         test_dataset, batch_size=opts.val_batch_size, shuffle=False, num_workers=2, drop_last=True)
+    print("loaded dataset")
 
     # Set up model (all models are 'constructed at network.modeling)
     model = network.modeling.__dict__[opts.model](dataset=opts.dataset,num_classes=opts.num_classes, output_stride=opts.output_stride)
@@ -237,6 +240,7 @@ def main():
         print("Model restored from %s" % opts.ckpt)
         del checkpoint  # free memory
     else:
+        print("model not restored")
         return
 
     vis_sample_id = np.random.randint(0, len(val_loader), opts.vis_num_samples,
