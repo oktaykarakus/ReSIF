@@ -232,6 +232,9 @@ def main():
     metrics = StreamSegMetrics(opts.num_classes)
 
     opts.ckpt = "checkpoints/latest_"+opts.model+"_"+opts.dataset+"_os"+str(opts.output_stride)+".pth"
+    
+    print(opts)
+    
     if opts.ckpt is not None and os.path.isfile(opts.ckpt):
         checkpoint = torch.load(opts.ckpt, map_location=torch.device('cpu'))
         model.load_state_dict(checkpoint["model_state"])
