@@ -29,6 +29,8 @@ import matplotlib.pyplot as plt
 import torchvision.transforms as T
 import kornia.augmentation as K
 
+from torchsummary import summary
+
 
 def get_argparser():
     parser = argparse.ArgumentParser()
@@ -165,44 +167,40 @@ def get_dataset(opts):
     return train_dataset, val_dataset
 
 
-def validate(opts, model, criterion, loader, device, metrics, ret_samples_ids=None):
+def validate(opts, model, loader, device, metrics, ret_samples_ids=None):
     """Do validation and return specified samples"""
     metrics.reset()
     ret_samples = []
     if opts.save_val_results:
         if not os.path.exists('results'):
             os.mkdir('results')
-
         img_id = 0
 
     with torch.no_grad():
         for i, sample in tqdm(enumerate(loader)):
-
+            labels = sample['mask'].to(device, dtype=torch.long)
             modality1 = sample['modality1'].to(device, dtype=torch.float32)
             modality2 = sample['modality2'].to(device, dtype=torch.float32)
             modality3 = sample['modality3'].to(device, dtype=torch.float32)
 
-            labels = sample['mask'].to(device, dtype=torch.long)
-
             outputs = model(modality1, modality2, modality3)
-            loss = criterion(outputs, labels)
-            loss = loss.cpu().numpy()
             preds = outputs.detach().max(dim=1)[1].cpu().numpy()
             targets = labels.cpu().numpy()
+
             metrics.update(targets, preds)
             if ret_samples_ids is not None and i in ret_samples_ids:  # get vis samples
                 ret_samples.append(
                     (modality1[0].detach().cpu().numpy(), targets[0], preds[0]))
 
-            if opts.save_val_results and i % 500 == 0:
+            if opts.save_val_results and i % 50 == 0:
                 for i in range(len(modality1)):
                     image = modality1[i].detach().cpu().numpy()
                     target = targets[i]
                     pred = preds[i]
 
-                    image = (image * 255).transpose(1, 2, 0).astype(np.uint8)
-                    target = target.astype(np.uint8)
-                    pred = pred.astype(np.uint8)
+                    image = (image[1:4] * 255).transpose(1, 2, 0).astype(np.uint8)
+                    target = loader.dataset.decode_target(target).astype(np.uint8)
+                    pred = loader.dataset.decode_target(pred).astype(np.uint8)
 
                     Image.fromarray(image).save('results/%d_image.png' % img_id)
                     Image.fromarray(target).save('results/%d_target.png' % img_id)
@@ -220,7 +218,7 @@ def validate(opts, model, criterion, loader, device, metrics, ret_samples_ids=No
                     img_id += 1
 
         score = metrics.get_results()
-    return score, ret_samples, loss
+    return score, ret_samples
 
 
 def main():
@@ -229,15 +227,12 @@ def main():
     opts = get_argparser().parse_args()
     if opts.dataset.lower() == 'hunan' or opts.dataset.lower() == 'hunan2':
         opts.num_classes = 7
+
     elif opts.dataset.lower() == 'potsdam':
         opts.num_classes = 6
+
     elif opts.dataset.lower() == 'dfc20':
-        opts.num_classes = 11
-    elif opts.dataset.lower() == 'passau':
-        # TODO: num_classes = 2? adjust for regression instead?
-        opts.num_classes = 2
-    elif opts.dataset.lower() == 'hunan3':
-        opts.num_classes = 7
+        opts.num_classes = 10
     else:
         raise RuntimeError("Dataset not found")
 
@@ -279,6 +274,7 @@ def main():
         model = nn.DataParallel(model)
         model.to(device)
         print("Model restored from %s" % opts.ckpt)
+        summary(model, [(13, 256, 256), (2, 256, 256), (1, 256, 256)])
         del checkpoint  # free memory
     else:
         print("model not restored")
