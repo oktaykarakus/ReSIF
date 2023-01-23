@@ -277,7 +277,9 @@ def main():
         model = nn.DataParallel(model)
         model.to(device)
         print("Model restored from %s" % opts.ckpt)
-        summary(model, [(13, 256, 256), (2, 256, 256), (1, 256, 256)])
+
+        # summary(model, [(13, 256, 256), (2, 256, 256), (1, 256, 256)])
+
         del checkpoint  # free memory
     else:
         print("model not restored")
