@@ -119,7 +119,7 @@ class dualParasingleHead(nn.Module):
 
 class triParasingleHead(nn.Module):
     def __init__(self, in_channels, low_level_channels, num_classes, aspp_dilate=[12, 24, 36]):
-        super(dualParasingleHead, self).__init__()
+        super(triParasingleHead, self).__init__()
         self.project_image = nn.Sequential(
             nn.Conv2d(low_level_channels, 48, 1, bias=False),
             nn.BatchNorm2d(48),
