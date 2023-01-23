@@ -44,8 +44,8 @@ def get_argparser():
     parser.add_argument("--num_classes", type=int, default=None,
                         help="num classes (default: None)")
     # Deeplab Options
-    available_models = sorted(name for name in network.modeling.__dict__ if name.islower()
-                              and not (name.startswith("__") or name.startswith('_')) and callable(
+    available_models = sorted(name for name in network.modeling.__dict__ if name.islower() and
+                              not (name.startswith("__") or name.startswith('_')) and callable(
                               network.modeling.__dict__[name])
                               )
 
@@ -104,22 +104,21 @@ def get_dataset(opts):
                     torch.max(sample["modality2"][i]) - torch.min(sample["modality2"][i]))
             return sample
         transforms = T.Compose([preprocess])
-        train_dataset = Hunan_dual_2D(root=opts.data_root, split="train", transforms=transforms)
-        val_dataset = Hunan_dual_2D(root=opts.data_root, split="val", transforms=transforms)
-
+        test_dataset = Hunan_dual_2D(root=opts.data_root, split="test", transforms=transforms)
     elif opts.dataset == 'hunan2':
         def preprocess(sample):
             for i in range(13):
                 sample["modality1"][i] = (sample["modality1"][i] - torch.min(sample["modality1"][i])) / (
                     torch.max(sample["modality1"][i]) - torch.min(sample["modality1"][i]))
+                # sample["image"][i] = torch.clip(sample["image"][i], min=0.0, max=1.0)
+            # normalise
             max = 1892.0
             min = 18.0
             sample["modality2"] = (sample["modality2"] - min) / (max - min)
             sample["modality2"] = torch.clip(sample["modality2"], min=0.0, max=1.0)
             return sample
         transforms = T.Compose([preprocess])
-        train_dataset = Hunan2_dual_2D(root=opts.data_root, split="train", transforms=transforms)
-        val_dataset = Hunan2_dual_2D(root=opts.data_root, split="val", transforms=transforms)
+        test_dataset = Hunan2_dual_2D(root=opts.data_root, split="test", transforms=transforms)
 
     elif opts.dataset == 'potsdam':
 
@@ -130,16 +129,12 @@ def get_dataset(opts):
             return sample
 
         transforms = T.Compose([preprocess])
-        train_dataset = potsdam_dual_2D(root=opts.data_root, split="train", transforms=transforms)
-        val_dataset = potsdam_dual_2D(root=opts.data_root, split="val", transforms=transforms)
+        test_dataset = potsdam_dual_2D(root=opts.data_root, split="test", transforms=transforms)
 
     elif opts.dataset == 'dfc20':
-        train_dataset = DFC20_dual_2D(root=opts.data_root, split="train")
-        val_dataset = DFC20_dual_2D(root=opts.data_root, split="val")
+        test_dataset = DFC20_dual_2D(root=opts.data_root, split="test")
 
-    elif opts.dataset == 'passau':
-        pass
-        # TODO: dataset preprocessing
+    # TODO: dataset getting for Passau
 
     elif opts.dataset == 'hunan3':
         def preprocess(sample):
@@ -159,12 +154,11 @@ def get_dataset(opts):
             return sample
 
         transforms = T.Compose([preprocess])
-        train_dataset = Hunan3_data(root=opts.data_root, split="train", transforms=transforms)
-        val_dataset = Hunan3_data(root=opts.data_root, split="val", transforms=transforms)
+        test_dataset = Hunan3_data(root=opts.data_root, split="test", transforms=transforms)
 
     else:
         raise RuntimeError("Dataset not found")
-    return train_dataset, val_dataset
+    return test_dataset
 
 
 def validate(opts, model, loader, device, metrics, ret_samples_ids=None):
