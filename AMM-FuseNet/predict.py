@@ -234,6 +234,7 @@ def main():
     elif opts.dataset.lower() == 'passau':
         # TODO: num_classes = 2? adjust for regression instead?
         opts.num_classes = 2
+    elif opts.dataset.lower() == 'hunan3':
         opts.num_classes = 7
     else:
         raise RuntimeError("Dataset not found")
