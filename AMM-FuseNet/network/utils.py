@@ -37,7 +37,7 @@ class SimpleSegmentationModelDual(nn.Module):
 
 class SimpleSegmentationModelTri(nn.Module):
     def __init__(self, backbone1, backbone2, backbone3, classifier):
-        super(SimpleSegmentationModelQuad, self).__init__()
+        super(SimpleSegmentationModelTri, self).__init__()
         self.backbone1 = backbone1
         self.backbone2 = backbone2
         self.backbone3 = backbone3
