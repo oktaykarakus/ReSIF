@@ -15,7 +15,7 @@ from datasets import potsdam_dual_2D
 
 from datasets import DFC20_dual_2D
 
-from datasets import passau
+from datasets import Passau_quad
 from datasets import Hunan3_data
 
 from utils import ext_transforms as et

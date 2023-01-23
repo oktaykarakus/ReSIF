@@ -14,6 +14,9 @@ from datasets import Hunan2_dual_2D
 from datasets import potsdam_dual_2D
 # from datasets import vaihingen_dual_2D
 
+from datasets import Passau_quad
+from datasets import Hunan3_data
+
 from datasets import DFC20_dual_2D
 from utils import ext_transforms as et
 from metrics import StreamSegMetrics
@@ -26,6 +29,7 @@ import matplotlib.pyplot as plt
 import torchvision.transforms as T
 import kornia.augmentation as K
 
+
 def get_argparser():
     parser = argparse.ArgumentParser()
     # Datset Options
@@ -33,19 +37,18 @@ def get_argparser():
                         help="path to Dataset")
     # potsdam       dfc20       hunan    hunan2
     parser.add_argument("--dataset", type=str, default='hunan',
-                        choices=['potsdam',  'hunan', 'hunan2', 'dfc20'], help='Name of dataset')
+                        choices=['potsdam', 'hunan', 'hunan2', 'hunan3', 'passau', 'dfc20'], help='Name of dataset')
 
     parser.add_argument("--num_classes", type=int, default=None,
                         help="num classes (default: None)")
     # Deeplab Options
-    available_models = sorted(name for name in network.modeling.__dict__ if name.islower() and \
-                              not (name.startswith("__") or name.startswith('_')) and callable(
+    available_models = sorted(name for name in network.modeling.__dict__ if name.islower()
+                              and not (name.startswith("__") or name.startswith('_')) and callable(
                               network.modeling.__dict__[name])
                               )
 
     #     dual_parasingle_nopretrained
     #     dual_parasingle_pretrained
-
 
     parser.add_argument("--model", type=str, default='dual_parasingle_nopretrained',
                         choices=available_models, help='model name')
@@ -86,88 +89,120 @@ def get_argparser():
                         help='number of samples for visualization (default: 8)')
     return parser
 
+
 def get_dataset(opts):
 
     if opts.dataset == 'hunan':
         def preprocess(sample):
             for i in range(13):
                 sample["modality1"][i] = (sample["modality1"][i] - torch.min(sample["modality1"][i])) / (
-                            torch.max(sample["modality1"][i]) - torch.min(sample["modality1"][i]))
+                    torch.max(sample["modality1"][i]) - torch.min(sample["modality1"][i]))
             for i in range(2):
                 sample["modality2"][i] = (sample["modality2"][i] - torch.min(sample["modality2"][i])) / (
-                            torch.max(sample["modality2"][i]) - torch.min(sample["modality2"][i]))
+                    torch.max(sample["modality2"][i]) - torch.min(sample["modality2"][i]))
             return sample
         transforms = T.Compose([preprocess])
-        test_dataset = Hunan_dual_2D(root=opts.data_root, split="test", transforms=transforms)
+        train_dataset = Hunan_dual_2D(root=opts.data_root, split="train", transforms=transforms)
+        val_dataset = Hunan_dual_2D(root=opts.data_root, split="val", transforms=transforms)
+
     elif opts.dataset == 'hunan2':
         def preprocess(sample):
             for i in range(13):
                 sample["modality1"][i] = (sample["modality1"][i] - torch.min(sample["modality1"][i])) / (
-                            torch.max(sample["modality1"][i]) - torch.min(sample["modality1"][i]))
-                # sample["image"][i] = torch.clip(sample["image"][i], min=0.0, max=1.0)
-            #normalise
-            max = 1892.0 
+                    torch.max(sample["modality1"][i]) - torch.min(sample["modality1"][i]))
+            max = 1892.0
             min = 18.0
             sample["modality2"] = (sample["modality2"] - min) / (max - min)
             sample["modality2"] = torch.clip(sample["modality2"], min=0.0, max=1.0)
             return sample
         transforms = T.Compose([preprocess])
-        test_dataset = Hunan2_dual_2D(root=opts.data_root, split="test", transforms=transforms)
+        train_dataset = Hunan2_dual_2D(root=opts.data_root, split="train", transforms=transforms)
+        val_dataset = Hunan2_dual_2D(root=opts.data_root, split="val", transforms=transforms)
 
     elif opts.dataset == 'potsdam':
 
         def preprocess(sample):
             sample["modality1"][:] /= 255.0
             sample["modality2"] = (sample["modality2"] - torch.min(sample["modality2"])) / (
-                    torch.max(sample["modality2"]) - torch.min(sample["modality2"]))
+                torch.max(sample["modality2"]) - torch.min(sample["modality2"]))
             return sample
 
         transforms = T.Compose([preprocess])
-        test_dataset = potsdam_dual_2D(root=opts.data_root, split="test", transforms=transforms)
-
+        train_dataset = potsdam_dual_2D(root=opts.data_root, split="train", transforms=transforms)
+        val_dataset = potsdam_dual_2D(root=opts.data_root, split="val", transforms=transforms)
 
     elif opts.dataset == 'dfc20':
-        test_dataset = DFC20_dual_2D(root=opts.data_root, split="test")
+        train_dataset = DFC20_dual_2D(root=opts.data_root, split="train")
+        val_dataset = DFC20_dual_2D(root=opts.data_root, split="val")
 
+    elif opts.dataset == 'passau':
+        pass
+        # TODO: dataset preprocessing
+
+    elif opts.dataset == 'hunan3':
+        def preprocess(sample):
+            for i in range(13):
+                sample["modality1"][i] = (sample["modality1"][i] - torch.min(sample["modality1"][i])) / (
+                    torch.max(sample["modality1"][i]) - torch.min(sample["modality1"][i]))
+
+            for i in range(2):
+                sample["modality2"][i] = (sample["modality2"][i] - torch.min(sample["modality2"][i])) / (
+                    torch.max(sample["modality2"][i]) - torch.min(sample["modality2"][i]))
+
+            max = 1892.0
+            min = 18.0
+            sample["modality3"] = (sample["modality3"] - min) / (max - min)
+            sample["modality3"] = torch.clip(sample["modality3"], min=0.0, max=1.0)
+
+            return sample
+
+        transforms = T.Compose([preprocess])
+        train_dataset = Hunan3_data(root=opts.data_root, split="train", transforms=transforms)
+        val_dataset = Hunan3_data(root=opts.data_root, split="val", transforms=transforms)
 
     else:
         raise RuntimeError("Dataset not found")
-    return test_dataset
+    return train_dataset, val_dataset
 
 
-def validate(opts, model, loader, device, metrics, ret_samples_ids=None):
+def validate(opts, model, criterion, loader, device, metrics, ret_samples_ids=None):
     """Do validation and return specified samples"""
     metrics.reset()
     ret_samples = []
     if opts.save_val_results:
         if not os.path.exists('results'):
             os.mkdir('results')
+
         img_id = 0
 
     with torch.no_grad():
         for i, sample in tqdm(enumerate(loader)):
-            labels = sample['mask'].to(device, dtype=torch.long)
+
             modality1 = sample['modality1'].to(device, dtype=torch.float32)
             modality2 = sample['modality2'].to(device, dtype=torch.float32)
+            modality3 = sample['modality3'].to(device, dtype=torch.float32)
 
-            outputs = model(modality1, modality2)
+            labels = sample['mask'].to(device, dtype=torch.long)
+
+            outputs = model(modality1, modality2, modality3)
+            loss = criterion(outputs, labels)
+            loss = loss.cpu().numpy()
             preds = outputs.detach().max(dim=1)[1].cpu().numpy()
             targets = labels.cpu().numpy()
-
             metrics.update(targets, preds)
             if ret_samples_ids is not None and i in ret_samples_ids:  # get vis samples
                 ret_samples.append(
                     (modality1[0].detach().cpu().numpy(), targets[0], preds[0]))
 
-            if opts.save_val_results and i%50==0:
+            if opts.save_val_results and i % 500 == 0:
                 for i in range(len(modality1)):
                     image = modality1[i].detach().cpu().numpy()
                     target = targets[i]
                     pred = preds[i]
 
-                    image = (image[1:4] * 255).transpose(1, 2, 0).astype(np.uint8)
-                    target = loader.dataset.decode_target(target).astype(np.uint8)
-                    pred = loader.dataset.decode_target(pred).astype(np.uint8)
+                    image = (image * 255).transpose(1, 2, 0).astype(np.uint8)
+                    target = target.astype(np.uint8)
+                    pred = pred.astype(np.uint8)
 
                     Image.fromarray(image).save('results/%d_image.png' % img_id)
                     Image.fromarray(target).save('results/%d_target.png' % img_id)
@@ -185,21 +220,24 @@ def validate(opts, model, loader, device, metrics, ret_samples_ids=None):
                     img_id += 1
 
         score = metrics.get_results()
-    return score, ret_samples
+    return score, ret_samples, loss
 
 
 def main():
     print("Running main")
-    
+
     opts = get_argparser().parse_args()
-    if opts.dataset.lower() == 'hunan' or opts.dataset.lower() == 'hunan2' :
+    if opts.dataset.lower() == 'hunan' or opts.dataset.lower() == 'hunan2':
         opts.num_classes = 7
-
-    elif opts.dataset.lower() == 'potsdam' :
+    elif opts.dataset.lower() == 'potsdam':
         opts.num_classes = 6
-
     elif opts.dataset.lower() == 'dfc20':
-        opts.num_classes = 10
+        opts.num_classes = 11
+    elif opts.dataset.lower() == 'passau':
+        # TODO: num_classes = 2? adjust for regression instead?
+        opts.num_classes = 2
+    elif opts.dataset.lower() == 'hunan3':
+        opts.num_classes = 7
     else:
         raise RuntimeError("Dataset not found")
 
@@ -225,17 +263,16 @@ def main():
     print("loaded dataset")
 
     # Set up model (all models are 'constructed at network.modeling)
-    model = network.modeling.__dict__[opts.model](dataset=opts.dataset,num_classes=opts.num_classes, output_stride=opts.output_stride)
-
+    model = network.modeling.__dict__[opts.model](dataset=opts.dataset, num_classes=opts.num_classes, output_stride=opts.output_stride)
 
     # Set up metrics
     metrics = StreamSegMetrics(opts.num_classes)
 
     if opts.ckpt is None:
-        opts.ckpt = "checkpoints/latest_"+opts.model+"_"+opts.dataset+"_os"+str(opts.output_stride)+".pth"
-    
+        opts.ckpt = "checkpoints/latest_" + opts.model + "_" + opts.dataset + "_os" + str(opts.output_stride) + ".pth"
+
     print(opts)
-    
+
     if opts.ckpt is not None and os.path.isfile(opts.ckpt):
         checkpoint = torch.load(opts.ckpt, map_location=torch.device('cpu'))
         model.load_state_dict(checkpoint["model_state"])
@@ -255,6 +292,7 @@ def main():
             opts=opts, model=model, loader=val_loader, device=device, metrics=metrics, ret_samples_ids=vis_sample_id)
         print(metrics.to_str(val_score))
         return
+
 
 if __name__ == '__main__':
     main()
