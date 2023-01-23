@@ -14,6 +14,10 @@ from datasets import Hunan2_dual_2D
 from datasets import potsdam_dual_2D
 
 from datasets import DFC20_dual_2D
+
+from datasets import passau
+from datasets import Hunan3
+
 from utils import ext_transforms as et
 from metrics import StreamSegMetrics
 import torch
@@ -32,22 +36,21 @@ def get_argparser():
     # Datset Options
     parser.add_argument("--data_root", type=str, default="./data/myhunan",
                         help="path to Dataset")
-    # potsdam     dfc20    hunan     hunan2    
+    # potsdam     dfc20    hunan     hunan2
     parser.add_argument("--dataset", type=str, default='hunan',
-                        choices=['potsdam', 'dfc20', 'hunan', 'hunan2'], help='Name of dataset') 
+                        choices=['potsdam', 'dfc20', 'hunan', 'hunan2', 'passau', 'hunan3'], help='Name of dataset')
 
     parser.add_argument("--num_classes", type=int, default=None,
                         help="num classes (default: None)")
     # Deeplab Options
-    available_models = sorted(name for name in network.modeling.__dict__ if name.islower() and \
-                              not (name.startswith("__") or name.startswith('_')) and callable(
+    available_models = sorted(name for name in network.modeling.__dict__ if name.islower()
+                              and not (name.startswith("__") or name.startswith('_')) and callable(
                               network.modeling.__dict__[name])
                               )
 
     parser.add_argument("--model", type=str, default='dual_parasingle_nopretrained',
                         choices=available_models, help='model name')
 
-                
     parser.add_argument("--separable_conv", action='store_true', default=False,
                         help="apply separable conv to decoder and aspp")
     parser.add_argument("--output_stride", type=int, default=16, choices=[8, 16])
@@ -89,7 +92,6 @@ def get_argparser():
     parser.add_argument("--download", action='store_true', default=False,
                         help="download datasets")
 
-
     # Visdom options
     parser.add_argument("--enable_vis", action='store_true', default=False,
                         help="use visdom for visualization")
@@ -100,27 +102,29 @@ def get_argparser():
     parser.add_argument("--vis_num_samples", type=int, default=8,
                         help='number of samples for visualization (default: 8)')
     return parser
+
+
 def get_dataset(opts):
-   
+
     if opts.dataset == 'hunan':
         def preprocess(sample):
             for i in range(13):
                 sample["modality1"][i] = (sample["modality1"][i] - torch.min(sample["modality1"][i])) / (
-                            torch.max(sample["modality1"][i]) - torch.min(sample["modality1"][i]))
+                    torch.max(sample["modality1"][i]) - torch.min(sample["modality1"][i]))
             for i in range(2):
                 sample["modality2"][i] = (sample["modality2"][i] - torch.min(sample["modality2"][i])) / (
-                            torch.max(sample["modality2"][i]) - torch.min(sample["modality2"][i]))
+                    torch.max(sample["modality2"][i]) - torch.min(sample["modality2"][i]))
             return sample
         transforms = T.Compose([preprocess])
         train_dataset = Hunan_dual_2D(root=opts.data_root, split="train", transforms=transforms)
         val_dataset = Hunan_dual_2D(root=opts.data_root, split="val", transforms=transforms)
-    
+
     elif opts.dataset == 'hunan2':
         def preprocess(sample):
             for i in range(13):
                 sample["modality1"][i] = (sample["modality1"][i] - torch.min(sample["modality1"][i])) / (
-                            torch.max(sample["modality1"][i]) - torch.min(sample["modality1"][i]))
-            max = 1892.0 
+                    torch.max(sample["modality1"][i]) - torch.min(sample["modality1"][i]))
+            max = 1892.0
             min = 18.0
             sample["modality2"] = (sample["modality2"] - min) / (max - min)
             sample["modality2"] = torch.clip(sample["modality2"], min=0.0, max=1.0)
@@ -130,22 +134,45 @@ def get_dataset(opts):
         val_dataset = Hunan2_dual_2D(root=opts.data_root, split="val", transforms=transforms)
 
     elif opts.dataset == 'potsdam':
-        
+
         def preprocess(sample):
             sample["modality1"][:] /= 255.0
             sample["modality2"] = (sample["modality2"] - torch.min(sample["modality2"])) / (
-                    torch.max(sample["modality2"]) - torch.min(sample["modality2"]))
+                torch.max(sample["modality2"]) - torch.min(sample["modality2"]))
             return sample
-        
+
         transforms = T.Compose([preprocess])
         train_dataset = potsdam_dual_2D(root=opts.data_root, split="train", transforms=transforms)
         val_dataset = potsdam_dual_2D(root=opts.data_root, split="val", transforms=transforms)
-   
-    
 
     elif opts.dataset == 'dfc20':
         train_dataset = DFC20_dual_2D(root=opts.data_root, split="train")
         val_dataset = DFC20_dual_2D(root=opts.data_root, split="val")
+
+    elif opts.dataset == 'passau':
+        pass
+        # TODO: dataset preprocessing
+
+    elif opts.dataset == 'hunan3':
+        def preprocess(sample):
+            for i in range(13):
+                sample["modality1"][i] = (sample["modality1"][i] - torch.min(sample["modality1"][i])) / (
+                    torch.max(sample["modality1"][i]) - torch.min(sample["modality1"][i]))
+
+            for i in range(2):
+                sample["modality2"][i] = (sample["modality2"][i] - torch.min(sample["modality2"][i])) / (
+                    torch.max(sample["modality2"][i]) - torch.min(sample["modality2"][i]))
+
+            max = 1892.0
+            min = 18.0
+            sample["modality3"] = (sample["modality3"] - min) / (max - min)
+            sample["modality3"] = torch.clip(sample["modality3"], min=0.0, max=1.0)
+
+            return sample
+
+        transforms = T.Compose([preprocess])
+        train_dataset = Hunan3(root=opts.data_root, split="train", transforms=transforms)
+        val_dataset = Hunan3(root=opts.data_root, split="val", transforms=transforms)
 
     else:
         raise RuntimeError("Dataset not found")
@@ -167,11 +194,11 @@ def validate(opts, model, criterion, loader, device, metrics, ret_samples_ids=No
 
             modality1 = sample['modality1'].to(device, dtype=torch.float32)
             modality2 = sample['modality2'].to(device, dtype=torch.float32)
-            
+            modality3 = sample['modality3'].to(device, dtype=torch.float32)
 
             labels = sample['mask'].to(device, dtype=torch.long)
 
-            outputs = model(modality1, modality2)
+            outputs = model(modality1, modality2, modality3)
             loss = criterion(outputs, labels)
             loss = loss.cpu().numpy()
             preds = outputs.detach().max(dim=1)[1].cpu().numpy()
@@ -181,7 +208,7 @@ def validate(opts, model, criterion, loader, device, metrics, ret_samples_ids=No
                 ret_samples.append(
                     (modality1[0].detach().cpu().numpy(), targets[0], preds[0]))
 
-            if opts.save_val_results and i % 500==0:
+            if opts.save_val_results and i % 500 == 0:
                 for i in range(len(modality1)):
                     image = modality1[i].detach().cpu().numpy()
                     target = targets[i]
@@ -218,6 +245,11 @@ def main():
         opts.num_classes = 6
     elif opts.dataset.lower() == 'dfc20':
         opts.num_classes = 11
+    elif opts.dataset.lower() == 'passau':
+        # TODO: num_classes = 2? adjust for regression instead?
+        opts.num_classes = 2
+    elif opts.dataset.lower() == 'hunan3':
+        opts.num_classes = 7
     else:
         raise RuntimeError("Dataset not found")
 
@@ -240,7 +272,7 @@ def main():
 
     train_dst, val_dst = get_dataset(opts)
     train_loader = data.DataLoader(train_dst, batch_size=opts.batch_size, shuffle=True, num_workers=4,
-        drop_last=True)  # drop_last=True to ignore single-image batches.
+                                   drop_last=True)  # drop_last=True to ignore single-image batches.
     val_loader = data.DataLoader(
         val_dst, batch_size=opts.val_batch_size, shuffle=False, num_workers=4, drop_last=True)
 
@@ -251,16 +283,17 @@ def main():
     model = network.modeling.__dict__[opts.model](dataset=opts.dataset, num_classes=opts.num_classes, output_stride=opts.output_stride)
     if opts.separable_conv and 'plus' in opts.model:
         network.convert_to_separable_conv(model.classifier)
-    
+
     utils.set_bn_momentum(model.backbone1, momentum=0.01)
     utils.set_bn_momentum(model.backbone2, momentum=0.01)
+    utils.set_bn_momentum(model.backbone3, momentum=0.01)
     # Set up optimizer
     optimizer = torch.optim.SGD(params=[
         {'params': model.backbone1.parameters(), 'lr': opts.lr},
         {'params': model.backbone2.parameters(), 'lr': opts.lr},
+        {'params': model.backbone3.parameters(), 'lr': opts.lr},
         {'params': model.classifier.parameters(), 'lr': opts.lr},
     ], lr=opts.lr, momentum=0.9, weight_decay=opts.weight_decay)
-    
 
     # Set up metrics
     metrics = StreamSegMetrics(opts.num_classes)
@@ -277,7 +310,6 @@ def main():
         criterion = utils.FocalLoss(ignore_index=255, size_average=True)
     elif opts.loss_type == 'cross_entropy':
         criterion = nn.CrossEntropyLoss(ignore_index=255, reduction='mean')
-
 
     def save_ckpt(path):
         """ save current model
@@ -317,10 +349,9 @@ def main():
     # ==========   Train Loop   ==========#
     vis_sample_id = np.random.randint(0, len(val_loader), opts.vis_num_samples,
                                       np.int32) if opts.enable_vis else None  # sample idxs for visualization
-   
 
-    with open("val_loss/%s_%s.txt" % (opts.model, opts.dataset),'w',encoding = 'utf-8') as f:
-                    f.writelines("\n")
+    with open("val_loss/%s_%s.txt" % (opts.model, opts.dataset), 'w', encoding='utf-8') as f:
+        f.writelines("\n")
 
     interval_loss = 0
     while True:  # cur_itrs < opts.total_itrs:
@@ -331,11 +362,12 @@ def main():
             cur_itrs += 1
             modality1 = sample['modality1'].to(device, dtype=torch.float32)
             modality2 = sample['modality2'].to(device, dtype=torch.float32)
+            modality3 = sample['modality3'].to(device, dtype=torch.float32)
             if opts.dataset == "gid":
                 modality2 = rearrange(modality2, "b h w -> b () h w")
             labels = sample['mask'].to(device, dtype=torch.long)
             optimizer.zero_grad()
-            outputs = model(modality1,modality2)
+            outputs = model(modality1, modality2, modality3)
             loss = criterion(outputs, labels)
             loss.backward()
             optimizer.step()
@@ -357,8 +389,8 @@ def main():
                     opts=opts, model=model, criterion=criterion, loader=val_loader, device=device, metrics=metrics,
                     ret_samples_ids=vis_sample_id)
                 print(metrics.to_str(val_score))
-                with open("val_loss/%s_%s.txt" % (opts.model, opts.dataset,),'a',encoding = 'utf-8') as f:
-                    f.writelines('cir_itrs:'+str(cur_itrs)+metrics.to_str(val_score)+'\n'+'train_loss:'+str(interval_loss)+'\n'+'val_loss:'+str(loss)+'\n')
+                with open("val_loss/%s_%s.txt" % (opts.model, opts.dataset,), 'a', encoding='utf-8') as f:
+                    f.writelines('cir_itrs:' + str(cur_itrs) + metrics.to_str(val_score) + '\n' + 'train_loss:' + str(interval_loss) + '\n' + 'val_loss:' + str(loss) + '\n')
                 interval_loss = 0.0
                 if val_score['Mean IoU'] > best_score:  # save best model
                     best_score = val_score['Mean IoU']
@@ -375,5 +407,7 @@ def main():
             scheduler.step()
             if cur_itrs >= opts.total_itrs:
                 return
+
+
 if __name__ == '__main__':
     main()
