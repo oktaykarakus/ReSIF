@@ -16,7 +16,7 @@ from datasets import potsdam_dual_2D
 from datasets import DFC20_dual_2D
 
 from datasets import passau
-from datasets import Hunan3
+from datasets import Hunan3_data
 
 from utils import ext_transforms as et
 from metrics import StreamSegMetrics
@@ -171,8 +171,8 @@ def get_dataset(opts):
             return sample
 
         transforms = T.Compose([preprocess])
-        train_dataset = Hunan3(root=opts.data_root, split="train", transforms=transforms)
-        val_dataset = Hunan3(root=opts.data_root, split="val", transforms=transforms)
+        train_dataset = Hunan3_data(root=opts.data_root, split="train", transforms=transforms)
+        val_dataset = Hunan3_data(root=opts.data_root, split="val", transforms=transforms)
 
     else:
         raise RuntimeError("Dataset not found")

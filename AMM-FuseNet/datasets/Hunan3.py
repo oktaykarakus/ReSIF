@@ -24,7 +24,7 @@ from .utils import (
 )
 
 
-class Hunan3(VisionDataset):
+class Hunan3_data(VisionDataset):
 
     colormap = [
         (197, 90, 17),  # Cropland
