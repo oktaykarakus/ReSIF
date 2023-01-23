@@ -227,12 +227,14 @@ def main():
     opts = get_argparser().parse_args()
     if opts.dataset.lower() == 'hunan' or opts.dataset.lower() == 'hunan2':
         opts.num_classes = 7
-
     elif opts.dataset.lower() == 'potsdam':
         opts.num_classes = 6
-
     elif opts.dataset.lower() == 'dfc20':
-        opts.num_classes = 10
+        opts.num_classes = 11
+    elif opts.dataset.lower() == 'passau':
+        # TODO: num_classes = 2? adjust for regression instead?
+        opts.num_classes = 2
+        opts.num_classes = 7
     else:
         raise RuntimeError("Dataset not found")
 
