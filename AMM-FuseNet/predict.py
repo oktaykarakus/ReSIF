@@ -29,12 +29,8 @@ import matplotlib.pyplot as plt
 import torchvision.transforms as T
 import kornia.augmentation as K
 
-from torchsummary import summary
-
-try:
-    from torchinfo import summary as infosummary
-except:
-    pass
+# from torchsummary import summary
+from torchinfo import summary
 
 
 def get_argparser():
@@ -183,14 +179,9 @@ def validate(opts, model, loader, device, metrics, ret_samples_ids=None):
             modality3 = sample['modality3'].to(device, dtype=torch.float32)
 
             try:
-                summary(model, [modality1, modality2, modality3])
+                summary(model, input_data=[modality1, modality2, modality3], col_names=["output_size", "num_params"], depth=5)
             except:
-                print("torchsummary failed")
-
-            try:
-                infosummary(model, input_data=[modality1, modality2, modality3], col_names=["output_size", "num_params"], depth=5)
-            except:
-                print("torchinfo failed")
+                print("summary failed")
 
             outputs = model(modality1, modality2, modality3)
             preds = outputs.detach().max(dim=1)[1].cpu().numpy()
@@ -289,14 +280,9 @@ def main():
 
         print(model)
         try:
-            summary(model, input_size=[(opts.val_batch_size, 13, 256, 256), (opts.val_batch_size, 2, 256, 256), (opts.val_batch_size, 1, 256, 256)])
+            summary(model, input_size=[(opts.val_batch_size, 13, 256, 256), (opts.val_batch_size, 2, 256, 256), (opts.val_batch_size, 1, 256, 256)], col_names=["output_size", "num_params"], depth=5)
         except:
-            print("torchsummary failed")
-
-        try:
-            infosummary(model, input_size=[(opts.val_batch_size, 13, 256, 256), (opts.val_batch_size, 2, 256, 256), (opts.val_batch_size, 1, 256, 256)], col_names=["output_size", "num_params"], depth=5)
-        except:
-            print("torchinfo failed")
+            print("summary failed")
 
         del checkpoint  # free memory
     else:
