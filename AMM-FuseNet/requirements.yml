@@ -323,7 +323,7 @@ dependencies:
     - shapely==1.8.0
     - shared-memory38==0.1.2
     - shortuuid==1.0.8
-    - simpleitk==2.1.1.2
+    #  - simpleitk==2.1.1.2
     - smmap==5.0.0
     - snuggs==1.4.7
     - sqlalchemy==1.4.37
