@@ -278,12 +278,13 @@ def main():
         model.to(device)
         print("Model restored from %s" % opts.ckpt)
 
-        print(model)
-        try:
-            summary(model, [(opts.val_batch_size, 13, 256, 256), (opts.val_batch_size, 2, 256, 256), (opts.val_batch_size, 1, 256, 256)])
-        except:
-            print("summary failed")
+        # print(model)
+        # try:
+        #     summary(model, [(13, 256, 256), (2, 256, 256), (1, 256, 256)])
+        # except:
+        #     print("summary failed")
 
+        return model
         del checkpoint  # free memory
     else:
         print("model not restored")
