@@ -183,14 +183,14 @@ def validate(opts, model, loader, device, metrics, ret_samples_ids=None):
             modality3 = sample['modality3'].to(device, dtype=torch.float32)
 
             try:
-                summary(model, input_data=[modality1, modality2, modality3])
+                summary(model, [modality1, modality2, modality3])
             except:
-                pass
+                print("torchsummary failed")
 
             try:
-                infosummary(model, input_data=[modality1, modality2, modality3])
+                infosummary(model, input_data=[modality1, modality2, modality3], col_names=["output_size", "num_params"], depth=5)
             except:
-                pass
+                print("torchinfo failed")
 
             outputs = model(modality1, modality2, modality3)
             preds = outputs.detach().max(dim=1)[1].cpu().numpy()
@@ -291,12 +291,12 @@ def main():
         try:
             summary(model, input_size=[(opts.val_batch_size, 13, 256, 256), (opts.val_batch_size, 2, 256, 256), (opts.val_batch_size, 1, 256, 256)])
         except:
-            pass
+            print("torchsummary failed")
 
         try:
-            infosummary(model, input_size=[(opts.val_batch_size, 13, 256, 256), (opts.val_batch_size, 2, 256, 256), (opts.val_batch_size, 1, 256, 256)])
+            infosummary(model, input_size=[(opts.val_batch_size, 13, 256, 256), (opts.val_batch_size, 2, 256, 256), (opts.val_batch_size, 1, 256, 256)], col_names=["output_size", "num_params"], depth=5)
         except:
-            pass
+            print("torchinfo failed")
 
         del checkpoint  # free memory
     else:
