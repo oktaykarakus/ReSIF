@@ -178,10 +178,10 @@ def validate(opts, model, loader, device, metrics, ret_samples_ids=None):
             modality2 = sample['modality2'].to(device, dtype=torch.float32)
             modality3 = sample['modality3'].to(device, dtype=torch.float32)
 
-            try:
-                summary(model, input_data=[modality1, modality2, modality3], col_names=["output_size", "num_params"], depth=5)
-            except:
-                print("summary failed")
+            # try:
+            #     summary(model, input_data=[modality1, modality2, modality3], col_names=["output_size", "num_params"], depth=5)
+            # except:
+            #     print("summary failed")
 
             outputs = model(modality1, modality2, modality3)
             preds = outputs.detach().max(dim=1)[1].cpu().numpy()
@@ -280,7 +280,7 @@ def main():
 
         print(model)
         try:
-            summary(model, input_size=[(opts.val_batch_size, 13, 256, 256), (opts.val_batch_size, 2, 256, 256), (opts.val_batch_size, 1, 256, 256)], col_names=["output_size", "num_params"], depth=5)
+            summary(model, [(opts.val_batch_size, 13, 256, 256), (opts.val_batch_size, 2, 256, 256), (opts.val_batch_size, 1, 256, 256)])
         except:
             print("summary failed")
 
