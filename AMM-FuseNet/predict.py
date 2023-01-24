@@ -179,7 +179,7 @@ def validate(opts, model, loader, device, metrics, ret_samples_ids=None):
             modality3 = sample['modality3'].to(device, dtype=torch.float32)
 
             try:
-                summary(model, input_data=[modality1, modality2, modality3], col_names=["output_size", "num_params"], depth=5)
+                summary(model, input_data=[modality1, modality2, modality3], col_names=["output_size", "input_size", "num_params"], depth=5)
             except:
                 print("summary failed")
 
