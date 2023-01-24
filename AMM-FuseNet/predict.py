@@ -31,6 +31,11 @@ import kornia.augmentation as K
 
 from torchsummary import summary
 
+try:
+    from torchinfo import summary as infosummary
+except:
+    pass
+
 
 def get_argparser():
     parser = argparse.ArgumentParser()
@@ -44,8 +49,8 @@ def get_argparser():
     parser.add_argument("--num_classes", type=int, default=None,
                         help="num classes (default: None)")
     # Deeplab Options
-    available_models = sorted(name for name in network.modeling.__dict__ if name.islower() and
-                              not (name.startswith("__") or name.startswith('_')) and callable(
+    available_models = sorted(name for name in network.modeling.__dict__ if name.islower()
+                              and not (name.startswith("__") or name.startswith('_')) and callable(
                               network.modeling.__dict__[name])
                               )
 
@@ -177,6 +182,16 @@ def validate(opts, model, loader, device, metrics, ret_samples_ids=None):
             modality2 = sample['modality2'].to(device, dtype=torch.float32)
             modality3 = sample['modality3'].to(device, dtype=torch.float32)
 
+            try:
+                summary(model, input_data=[modality1, modality2, modality3])
+            except:
+                pass
+
+            try:
+                infosummary(model, input_data=[modality1, modality2, modality3])
+            except:
+                pass
+
             outputs = model(modality1, modality2, modality3)
             preds = outputs.detach().max(dim=1)[1].cpu().numpy()
             targets = labels.cpu().numpy()
@@ -272,7 +287,16 @@ def main():
         model.to(device)
         print("Model restored from %s" % opts.ckpt)
 
-        # summary(model, [(13, 256, 256), (2, 256, 256), (1, 256, 256)])
+        print(model)
+        try:
+            summary(model, input_size=[(opts.val_batch_size, 13, 256, 256), (opts.val_batch_size, 2, 256, 256), (opts.val_batch_size, 1, 256, 256)])
+        except:
+            pass
+
+        try:
+            infosummary(model, input_size=[(opts.val_batch_size, 13, 256, 256), (opts.val_batch_size, 2, 256, 256), (opts.val_batch_size, 1, 256, 256)])
+        except:
+            pass
 
         del checkpoint  # free memory
     else:
