@@ -29,8 +29,8 @@ import matplotlib.pyplot as plt
 import torchvision.transforms as T
 import kornia.augmentation as K
 
-# from torchsummary import summary
-from torchinfo import summary
+from torchsummary import summary
+# from torchinfo import summary
 
 
 def get_argparser():
