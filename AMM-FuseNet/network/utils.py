@@ -1,65 +1,15 @@
 import torch
 import torch.nn as nn
-import numpy as np
 import torch.nn.functional as F
 from collections import OrderedDict
 
 
-class SimpleSegmentationModel(nn.Module):
-    def __init__(self, backbone, classifier):
-        super(SimpleSegmentationModel, self).__init__()
-        self.backbone = backbone
-        self.classifier = classifier
-
-    def forward(self, x):
-        input_shape = x.shape[-2:]
-        features = self.backbone(x)
-        x = self.classifier(features)
-        x = F.interpolate(x, size=input_shape, mode='bilinear', align_corners=False)
-        return x
-
-
-class SimpleSegmentationModelDual(nn.Module):
-    def __init__(self, backbone1, backbone2, classifier):
-        super(SimpleSegmentationModelDual, self).__init__()
-        self.backbone1 = backbone1
-        self.backbone2 = backbone2
-        self.classifier = classifier
-
-    def forward(self, modality1, modality2):
-        input_shape = modality1.shape[-2:]
-        features_modality1 = self.backbone1(modality1)
-        features_modality2 = self.backbone2(modality2)
-        x = self.classifier(features_modality1, features_modality2)
-        x = F.interpolate(x, size=input_shape, mode='bilinear', align_corners=False)
-        return x
-
-
-class SimpleSegmentationModelTri(nn.Module):
+class SegmentationModel3plus1(nn.Module):
     def __init__(self, backbone1, backbone2, backbone3, classifier):
-        super(SimpleSegmentationModelTri, self).__init__()
+        super(SegmentationModel3plus1, self).__init__()
         self.backbone1 = backbone1
         self.backbone2 = backbone2
         self.backbone3 = backbone3
-        self.classifier = classifier
-
-    def forward(self, modality1, modality2, modality3):
-        input_shape = modality1.shape[-2:]
-        features_modality1 = self.backbone1(modality1)
-        features_modality2 = self.backbone2(modality2)
-        features_modality3 = self.backbone3(modality3)
-        x = self.classifier(features_modality1, features_modality2, features_modality3)
-        x = F.interpolate(x, size=input_shape, mode='bilinear', align_corners=False)
-        return x
-
-
-class SimpleSegmentationModelQuad(nn.Module):
-    def __init__(self, backbone1, backbone2, backbone3, backbone4, classifier):
-        super(SimpleSegmentationModelQuad, self).__init__()
-        self.backbone1 = backbone1
-        self.backbone2 = backbone2
-        self.backbone3 = backbone3
-        self.backbone4 = backbone4
         self.classifier = classifier
 
     def forward(self, modality1, modality2, modality3, modality4):
@@ -67,8 +17,7 @@ class SimpleSegmentationModelQuad(nn.Module):
         features_modality1 = self.backbone1(modality1)
         features_modality2 = self.backbone2(modality2)
         features_modality3 = self.backbone3(modality3)
-        features_modality4 = self.backbone4(modality4)
-        x = self.classifier(features_modality1, features_modality2, features_modality3, features_modality4)
+        x = self.classifier(features_modality1, features_modality2, features_modality3, modality4)
         x = F.interpolate(x, size=input_shape, mode='bilinear', align_corners=False)
         return x
 

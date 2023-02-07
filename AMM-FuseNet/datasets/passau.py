@@ -6,7 +6,6 @@ import numpy as np
 import rasterio
 import torch
 
-from PIL import Image
 from torch import Tensor
 
 from .geo import VisionDataset
@@ -28,7 +27,7 @@ class Passau_quad(VisionDataset):
 
     colormap = [
         (255, 255, 255),  # damage
-        (0, 0, 0)       # no damage
+        (0, 0, 0)         # no damage
     ]
 
     def __init__(
@@ -53,11 +52,11 @@ class Passau_quad(VisionDataset):
         self.split = split
         self.transforms = transforms
         self.checksum = checksum
-        self.s2_root = "s2_dir"
-        self.planet_root = "planet_dir"
-        self.dem_root = "dem_dir"
-        self.wind_root = "wind_dir"
-        self.mask_root = "ann_dir"
+        self.s2_root = "s2"
+        self.planet_root = "planet"
+        self.dem_root = "dem"
+        self.wind_root = "wind"
+        self.mask_root = "ann"
         self._verify()
 
         self.files = []
@@ -148,11 +147,10 @@ class Passau_quad(VisionDataset):
         """
         path = self.files[index]["s2"]
         with rasterio.open(path) as f:
-            array: "np.typing.NDArray[np.float_]" = f.read(
-                out_dtype="float32"
+            array: "np.typing.NDArray[np.uint16]" = f.read(
+                out_dtype="uint16"
             )
-            # array = f.read()
-            tensor: Tensor = torch.from_numpy(array)  # type: ignore[attr-defined]
+            tensor: Tensor = torch.from_numpy(array)
             return tensor
 
     def _load_image_planet(self, index: int) -> Tensor:
@@ -166,11 +164,10 @@ class Passau_quad(VisionDataset):
         """
         path = self.files[index]["planet"]
         with rasterio.open(path) as f:
-            array: "np.typing.NDArray[np.float_]" = f.read(
-                out_dtype="float32"
+            array: "np.typing.NDArray[np.uint16]" = f.read(
+                out_dtype="uint16"
             )
-            # array = f.read()
-            tensor: Tensor = torch.from_numpy(array)  # type: ignore[attr-defined]
+            tensor: Tensor = torch.from_numpy(array)
             return tensor
 
     def _load_dem_patch(self, index: int) -> Tensor:
@@ -187,8 +184,7 @@ class Passau_quad(VisionDataset):
             array: "np.typing.NDArray[np.float_]" = f.read(
                 out_dtype="float32"
             )
-            # array = f.read()
-            tensor: Tensor = torch.from_numpy(array)  # type: ignore[attr-defined]
+            tensor: Tensor = torch.from_numpy(array)
             return tensor
 
     def _load_wind_patch(self, index: int) -> Tensor:
@@ -205,8 +201,7 @@ class Passau_quad(VisionDataset):
             array: "np.typing.NDArray[np.float_]" = f.read(
                 out_dtype="float32"
             )
-            # array = f.read()
-            tensor: Tensor = torch.from_numpy(array)  # type: ignore[attr-defined]
+            tensor: Tensor = torch.from_numpy(array)
             return tensor
 
     def _load_target(self, index: int) -> Tensor:
@@ -219,17 +214,12 @@ class Passau_quad(VisionDataset):
             the target mask
         """
 
-        # TODO: adjust target data format
-
-        igbp2hunan = np.array([255, 0, 1, 2, 1, 3, 4, 6, 6, 5, 6, 7, 255])
         path = self.files[index]["mask"]
-        with Image.open(path) as img:
-            array: "np.typing.NDArray[np.uint8]" = np.array(img)
-            array[array == 255] = 12
-            array = igbp2hunan[array]
-            tensor: Tensor = torch.from_numpy(array)  # type: ignore[attr-defined]
-            # Convert from HxWxC to CxHxW
-            tensor = tensor.to(torch.long)  # type: ignore[attr-defined]
+        with rasterio.open(path) as f:
+            array: "np.typing.NDArray[np.uint8]" = f.read(
+                out_dtype="uint8")
+        tensor: Tensor = torch.from_numpy(array)
+        tensor = tensor.to(torch.long)
         return tensor
 
     def _verify(self) -> None:

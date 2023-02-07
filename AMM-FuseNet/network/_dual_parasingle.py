@@ -4,122 +4,9 @@ from torch.nn import functional as F
 from .eca_module import eca_layer
 
 
-class dualParasingleHead(nn.Module):
+class ThreePlusOneHead(nn.Module):
     def __init__(self, in_channels, low_level_channels, num_classes, aspp_dilate=[12, 24, 36]):
-        super(dualParasingleHead, self).__init__()
-        self.project_image = nn.Sequential(
-            nn.Conv2d(low_level_channels, 48, 1, bias=False),
-            nn.BatchNorm2d(48),
-            nn.ReLU(inplace=True),
-        )
-
-        self.project_dsm = nn.Sequential(
-            nn.Conv2d(low_level_channels, 48, 1, bias=False),
-            nn.BatchNorm2d(48),
-            nn.ReLU(inplace=True),
-        )
-
-        self.dense_aspp_image = DenseASPP(low_level_channels)
-        self.dense_aspp_dsm = DenseASPP(low_level_channels)
-
-        self.classifier = nn.Sequential(
-            nn.Conv2d(448 * 2, 256, 3, padding=1, bias=False),
-            nn.BatchNorm2d(256),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(256, num_classes, 1)
-        )
-        self._init_weight()
-
-        self.project_block2_image = nn.Sequential(
-            nn.Conv2d(low_level_channels * 2, 48, 1, bias=False),
-            nn.BatchNorm2d(48),
-            nn.ReLU(inplace=True),
-        )
-        self.project_block3_image = nn.Sequential(
-            nn.Conv2d(low_level_channels * 4, 48, 1, bias=False),
-            nn.BatchNorm2d(48),
-            nn.ReLU(inplace=True),
-        )
-        self.project_block4_image = nn.Sequential(
-            nn.Conv2d(low_level_channels * 8, 48, 1, bias=False),
-            nn.BatchNorm2d(48),
-            nn.ReLU(inplace=True),)
-
-        self.project_block2_dsm = nn.Sequential(
-            nn.Conv2d(low_level_channels * 2, 48, 1, bias=False),
-            nn.BatchNorm2d(48),
-            nn.ReLU(inplace=True),
-        )
-        self.project_block3_dsm = nn.Sequential(
-            nn.Conv2d(low_level_channels * 4, 48, 1, bias=False),
-            nn.BatchNorm2d(48),
-            nn.ReLU(inplace=True),
-        )
-        self.project_block4_dsm = nn.Sequential(
-            nn.Conv2d(low_level_channels * 8, 48, 1, bias=False),
-            nn.BatchNorm2d(48),
-            nn.ReLU(inplace=True), )
-
-        self.eca_net_1_image = eca_layer(low_level_channels)
-        self.eca_net_2_image = eca_layer(low_level_channels * 2)
-        self.eca_net_3_image = eca_layer(low_level_channels * 4)
-        self.eca_net_4_image = eca_layer(low_level_channels * 8)
-
-        self.eca_net_1_dsm = eca_layer(low_level_channels)
-        self.eca_net_2_dsm = eca_layer(low_level_channels * 2)
-        self.eca_net_3_dsm = eca_layer(low_level_channels * 4)
-        self.eca_net_4_dsm = eca_layer(low_level_channels * 8)
-
-    def forward(self, features_image, features_dsm):
-        low_level_feature_image = self.project_image(features_image['low_level'])
-        low_level_feature_image = self.eca_net_1_image(low_level_feature_image)
-
-        low_level_feature_dsm = self.project_dsm(features_dsm['low_level'])
-        low_level_feature_dsm = self.eca_net_1_dsm(low_level_feature_dsm)
-
-        block2_image = self.project_block2_image(features_image['block2'])
-        block2_image = self.eca_net_2_image(block2_image)
-        block2_image = F.interpolate(block2_image, size=low_level_feature_image.shape[2:], mode='bilinear', align_corners=False)
-
-        block2_dsm = self.project_block2_dsm(features_dsm['block2'])
-        block2_dsm = self.eca_net_2_dsm(block2_dsm)
-        block2_dsm = F.interpolate(block2_dsm, size=low_level_feature_dsm.shape[2:], mode='bilinear', align_corners=False)
-
-        block3_image = self.project_block3_image(features_image['block3'])
-        block3_image = self.eca_net_3_image(block3_image)
-
-        block3_dsm = self.project_block3_dsm(features_dsm['block3'])
-        block3_dsm = self.eca_net_3_dsm(block3_dsm)
-
-        block4_image = self.project_block4_image(features_image['out'])
-        block4_image = self.eca_net_4_image(block4_image)
-
-        block4_dsm = self.project_block4_dsm(features_dsm['out'])
-        block4_dsm = self.eca_net_4_dsm(block4_dsm)
-
-        output_feature_image_aspp = self.dense_aspp_image(features_image['low_level'])
-        output_feature_image = torch.cat((block3_image, block4_image), dim=1)
-        output_feature_image = F.interpolate(output_feature_image, size=low_level_feature_image.shape[2:], mode='bilinear', align_corners=False)
-
-        output_feature_dsm_aspp = self.dense_aspp_dsm(features_dsm['low_level'])
-        output_feature_dsm = torch.cat((block3_dsm, block4_dsm), dim=1)
-        output_feature_dsm = F.interpolate(output_feature_dsm, size=low_level_feature_dsm.shape[2:],
-                                           mode='bilinear', align_corners=False)
-
-        return self.classifier(torch.cat([low_level_feature_image, block2_image, output_feature_image, output_feature_image_aspp, low_level_feature_dsm, block2_dsm, output_feature_dsm, output_feature_dsm_aspp], dim=1))
-
-    def _init_weight(self):
-        for m in self.modules():
-            if isinstance(m, nn.Conv2d):
-                nn.init.kaiming_normal_(m.weight)
-            elif isinstance(m, (nn.BatchNorm2d, nn.GroupNorm)):
-                nn.init.constant_(m.weight, 1)
-                nn.init.constant_(m.bias, 0)
-
-
-class triParasingleHead(nn.Module):
-    def __init__(self, in_channels, low_level_channels, num_classes, aspp_dilate=[12, 24, 36]):
-        super(triParasingleHead, self).__init__()
+        super(ThreePlusOneHead, self).__init__()
         self.project_image = nn.Sequential(
             nn.Conv2d(low_level_channels, 48, 1, bias=False),
             nn.BatchNorm2d(48),
@@ -136,11 +23,13 @@ class triParasingleHead(nn.Module):
         self.dense_aspp_dsm = DenseASPP(low_level_channels)
 
         # actual classifier implementation
+        # TODO: make this make sense
         self.classifier = nn.Sequential(
-            nn.Conv2d(448 * 3, 256, 3, padding=1, bias=False),
+            nn.Conv2d(448 * 3 + 1, 256, 3, padding=1, bias=False),
             nn.BatchNorm2d(256),
             nn.ReLU(inplace=True),
-            nn.Conv2d(256, num_classes, 1)
+            nn.Conv2d(256, num_classes, 1),
+            nn.Sigmoid()
         )
         self._init_weight()
 
@@ -184,7 +73,7 @@ class triParasingleHead(nn.Module):
         self.eca_net_3_dsm = eca_layer(low_level_channels * 4)
         self.eca_net_4_dsm = eca_layer(low_level_channels * 8)
 
-    def forward(self, features_imageA, features_imageB, features_dsm):
+    def forward(self, features_imageA, features_imageB, features_dsm, wind):
         low_level_feature_imageA = self.project_image(features_imageA['low_level'])
         low_level_feature_imageA = self.eca_net_1_image(low_level_feature_imageA)
 
@@ -237,32 +126,7 @@ class triParasingleHead(nn.Module):
         output_feature_dsm = F.interpolate(output_feature_dsm, size=low_level_feature_dsm.shape[2:],
                                            mode='bilinear', align_corners=False)
 
-        return self.classifier(torch.cat([low_level_feature_imageA, block2_imageA, output_feature_imageA, output_feature_imageA_aspp, low_level_feature_imageB, block2_imageB, output_feature_imageB, output_feature_imageB_aspp, low_level_feature_dsm, block2_dsm, output_feature_dsm, output_feature_dsm_aspp], dim=1))
-
-    def _init_weight(self):
-        for m in self.modules():
-            if isinstance(m, nn.Conv2d):
-                nn.init.kaiming_normal_(m.weight)
-            elif isinstance(m, (nn.BatchNorm2d, nn.GroupNorm)):
-                nn.init.constant_(m.weight, 1)
-                nn.init.constant_(m.bias, 0)
-
-
-class DeepLabHead(nn.Module):
-    def __init__(self, in_channels, num_classes, aspp_dilate=[12, 24, 36]):
-        super(DeepLabHead, self).__init__()
-
-        self.classifier = nn.Sequential(
-            ASPP(in_channels, aspp_dilate),
-            nn.Conv2d(256, 256, 3, padding=1, bias=False),
-            nn.BatchNorm2d(256),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(256, num_classes, 1)
-        )
-        self._init_weight()
-
-    def forward(self, feature):
-        return self.classifier(feature['out'])
+        return self.classifier(torch.cat([wind, low_level_feature_imageA, block2_imageA, output_feature_imageA, output_feature_imageA_aspp, low_level_feature_imageB, block2_imageB, output_feature_imageB, output_feature_imageB_aspp, low_level_feature_dsm, block2_dsm, output_feature_dsm, output_feature_dsm_aspp], dim=1))
 
     def _init_weight(self):
         for m in self.modules():

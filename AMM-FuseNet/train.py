@@ -34,10 +34,10 @@ def get_argparser():
     parser = argparse.ArgumentParser()
 
     # Datset Options
-    parser.add_argument("--data_root", type=str, default="./data/myhunan",
+    parser.add_argument("--data_root", type=str, default="./data/passau",
                         help="path to Dataset")
     # potsdam     dfc20    hunan     hunan2
-    parser.add_argument("--dataset", type=str, default='hunan',
+    parser.add_argument("--dataset", type=str, default='passau',
                         choices=['potsdam', 'dfc20', 'hunan', 'hunan2', 'passau', 'hunan3'], help='Name of dataset')
 
     parser.add_argument("--num_classes", type=int, default=None,
@@ -48,7 +48,7 @@ def get_argparser():
                               network.modeling.__dict__[name])
                               )
 
-    parser.add_argument("--model", type=str, default='dual_parasingle_nopretrained',
+    parser.add_argument("--model", type=str, default='threeplusone_pretrained',
                         choices=available_models, help='model name')
 
     parser.add_argument("--separable_conv", action='store_true', default=False,
@@ -68,9 +68,9 @@ def get_argparser():
     parser.add_argument("--step_size", type=int, default=10000)
     parser.add_argument("--crop_val", action='store_true', default=False,
                         help='crop validation (default: False)')
-    parser.add_argument("--batch_size", type=int, default=10,
+    parser.add_argument("--batch_size", type=int, default=8,
                         help='batch size (default: 16)')
-    parser.add_argument("--val_batch_size", type=int, default=10,
+    parser.add_argument("--val_batch_size", type=int, default=4,
                         help='batch size for validation (default: 4)')
 
     parser.add_argument("--ckpt", default=None, type=str,
@@ -150,29 +150,36 @@ def get_dataset(opts):
         val_dataset = DFC20_dual_2D(root=opts.data_root, split="val")
 
     elif opts.dataset == 'passau':
-        pass
-        # TODO: dataset preprocessing
-
-    elif opts.dataset == 'hunan3':
         def preprocess(sample):
+            # TODO: implement correct normalization
+
+            # normalize sentinel (modality1)
             for i in range(13):
                 sample["modality1"][i] = (sample["modality1"][i] - torch.min(sample["modality1"][i])) / (
                     torch.max(sample["modality1"][i]) - torch.min(sample["modality1"][i]))
 
-            for i in range(2):
+            # normalize planet (modality2)
+            for i in range(4):
                 sample["modality2"][i] = (sample["modality2"][i] - torch.min(sample["modality2"][i])) / (
                     torch.max(sample["modality2"][i]) - torch.min(sample["modality2"][i]))
 
-            max = 1892.0
-            min = 18.0
+            # normalize dem (modality3)
+            max = 1456
+            min = 300
             sample["modality3"] = (sample["modality3"] - min) / (max - min)
             sample["modality3"] = torch.clip(sample["modality3"], min=0.0, max=1.0)
+
+            # normalize wind? (modality4)
+            max = 40
+            min = 0
+            sample["modality4"] = (sample["modality4"] - min) / (max - min)
+            sample["modality4"] = torch.clip(sample["modality4"], min=0.0, max=1.0)
 
             return sample
 
         transforms = T.Compose([preprocess])
-        train_dataset = Hunan3_data(root=opts.data_root, split="train", transforms=transforms)
-        val_dataset = Hunan3_data(root=opts.data_root, split="val", transforms=transforms)
+        train_dataset = Passau_quad(root=opts.data_root, split="train", transforms=transforms)
+        val_dataset = Passau_quad(root=opts.data_root, split="val", transforms=transforms)
 
     else:
         raise RuntimeError("Dataset not found")
@@ -195,10 +202,11 @@ def validate(opts, model, criterion, loader, device, metrics, ret_samples_ids=No
             modality1 = sample['modality1'].to(device, dtype=torch.float32)
             modality2 = sample['modality2'].to(device, dtype=torch.float32)
             modality3 = sample['modality3'].to(device, dtype=torch.float32)
+            modality4 = sample['modality4'].to(device, dtype=torch.float32)
 
             labels = sample['mask'].to(device, dtype=torch.long)
 
-            outputs = model(modality1, modality2, modality3)
+            outputs = model(modality1, modality2, modality3, modality4)
             loss = criterion(outputs, labels)
             loss = loss.cpu().numpy()
             preds = outputs.detach().max(dim=1)[1].cpu().numpy()
@@ -206,15 +214,15 @@ def validate(opts, model, criterion, loader, device, metrics, ret_samples_ids=No
             metrics.update(targets, preds)
             if ret_samples_ids is not None and i in ret_samples_ids:  # get vis samples
                 ret_samples.append(
-                    (modality1[0].detach().cpu().numpy(), targets[0], preds[0]))
+                    (modality2[0].detach().cpu().numpy(), targets[0], preds[0]))
 
             if opts.save_val_results and i % 500 == 0:
-                for i in range(len(modality1)):
-                    image = modality1[i].detach().cpu().numpy()
+                for i in range(len(modality2)):
+                    image = modality2[i].detach().cpu().numpy()
                     target = targets[i]
                     pred = preds[i]
 
-                    image = (image * 255).transpose(1, 2, 0).astype(np.uint8)
+                    image = (image[2::-1] * 255).transpose(1, 2, 0).astype(np.uint8)
                     target = target.astype(np.uint8)
                     pred = pred.astype(np.uint8)
 
@@ -363,11 +371,10 @@ def main():
             modality1 = sample['modality1'].to(device, dtype=torch.float32)
             modality2 = sample['modality2'].to(device, dtype=torch.float32)
             modality3 = sample['modality3'].to(device, dtype=torch.float32)
-            if opts.dataset == "gid":
-                modality2 = rearrange(modality2, "b h w -> b () h w")
+            modality4 = sample['modality4'].to(device, dtype=torch.float32)
             labels = sample['mask'].to(device, dtype=torch.long)
             optimizer.zero_grad()
-            outputs = model(modality1, modality2, modality3)
+            outputs = model(modality1, modality2, modality3, modality4)
             loss = criterion(outputs, labels)
             loss.backward()
             optimizer.step()
