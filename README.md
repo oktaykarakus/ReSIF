@@ -3,5 +3,7 @@
 
 This project mainly focuses on reducing the labelling budget for semantic segmentation of remote sensing imagery. We used the following techniques for this purpose:
 
--AMM-FuseNet -- exploring multi-modality 
--CGSSL -- develop multi-model semi-supervised learning framework
+1. AMM-FuseNet -- exploring multi-modality 
+2. CGSSL -- develop a multi-model semi-supervised learning framework
+
+We will keep updating this repository.
